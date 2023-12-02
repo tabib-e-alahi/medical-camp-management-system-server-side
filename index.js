@@ -26,6 +26,9 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     const campsCollection = client.db("mediCampsDb").collection("camps");
+    const participantCollection = client
+      .db("mediCampsDb")
+      .collection("participants");
 
     // load all camps data from mongodb database
     app.get("/camps", async (req, res) => {
@@ -55,9 +58,24 @@ async function run() {
     });
 
     app.get("/camp-details/:id", async (req, res) => {
-      const id = req.params.id
+      const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await campsCollection.findOne(query);
+      res.send(result);
+    });
+
+    //send new campy data to data database
+    app.post("/campy-data", async (req, res) => {
+      const newCampyData = req.body;
+      const result = await participantCollection.insertOne(newCampyData);
+      res.send(result);
+    });
+    //find the campy data from data database
+    app.get("/campy-data", async (req, res) => {
+      const { email } = req.query;
+      console.log("Campy email: ", email);
+      const query = { campy_email: email };
+      const result = await participantCollection.find(query).toArray();
       res.send(result);
     });
 
