@@ -7,7 +7,12 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
 //middlewares
-app.use(cors());
+const corsOptions ={
+  origin:'*',
+  credentials:true,
+  optionSuccessStatus:200,
+  }
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.o8c7bsg.mongodb.net/?retryWrites=true&w=majority`;
@@ -227,10 +232,15 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/manage-campy-data',verifyToken,verifyOrganizer, async(req,res) =>{
+      const result = await participantCollection.find().toArray();
+      res.send(result);
+    })
+
     //find the campy data from data database
-    app.get("/campy-data", verifyToken, verifyOrganizer, async (req, res) => {
+    app.get("/campy-data", verifyToken, async (req, res) => {
       const { type } = req?.query;
-      // console.log("Campy type: ", type);
+      console.log("Campy type: ", type);
 
       let query = {};
 
@@ -244,6 +254,15 @@ async function run() {
           query = { camp_id: criteria.id };
         }
       }
+      const result = await participantCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/participant-data", verifyToken, async (req, res) => {
+      const { email } = req?.query;
+      console.log("Campy type: ", email);
+
+      const query = {campy_email: email}
       const result = await participantCollection.find(query).toArray();
       res.send(result);
     });
@@ -273,6 +292,27 @@ async function run() {
         res.send(result);
       }
     );
+
+    app.get('/registered-camps', async (req, res) => {
+      const { camp_ids } = req.query;
+    
+      if (!camp_ids) {
+        return res.status(400).send({ error: 'Missing camp_ids parameter' });
+      }
+    
+      const campIdsArray = camp_ids.split(',').map(id => new ObjectId(id));
+    
+      const result = await campsCollection.find({ _id: { $in: campIdsArray } }).toArray();
+      res.send(result);
+    });
+
+    app.delete('/registered-camps/:id',verifyToken, async (req, res) => {
+      const id = req.params.id;
+      console.log('Delete id:',id);
+      const query = {camp_id: id}
+      const result = await participantCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
