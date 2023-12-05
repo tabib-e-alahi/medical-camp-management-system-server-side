@@ -35,9 +35,12 @@ async function run() {
     const userCollection = client.db("mediCampsDb").collection("users");
     const campsCollection = client.db("mediCampsDb").collection("camps");
     const testimonialCollection = client.db("mediCampsDb").collection("testimonials");
+    const upComingCampCollection = client.db("mediCampsDb").collection("upComingCamps");
     const participantCollection = client
       .db("mediCampsDb")
       .collection("registrations");
+
+
 
     //  ============================ AUTH RELATED API ==================================
     app.post("/jwt", async (req, res) => {
@@ -241,7 +244,7 @@ async function run() {
     //find the campy data from data database
     app.get("/campy-data", verifyToken, async (req, res) => {
       const { type } = req?.query;
-      console.log("Campy type: ", type);
+      // console.log("Campy type: ", type);
 
       let query = {};
 
@@ -261,7 +264,7 @@ async function run() {
 
     app.get("/participant-data", verifyToken, async (req, res) => {
       const { email } = req?.query;
-      console.log("Campy type: ", email);
+      // console.log("Campy type: ", email);
 
       const query = {campy_email: email}
       const result = await participantCollection.find(query).toArray();
@@ -275,9 +278,9 @@ async function run() {
       verifyOrganizer,
       async (req, res) => {
         const id = req.params.id;
-        console.log("----:", id);
+        // console.log("----:", id);
         const { participants } = req.body;
-        console.log("count==:", participants);
+        // console.log("count==:", participants);
         const options = { upsert: true };
         const filter = { _id: new ObjectId(id) };
         const updatedDoc = {
@@ -309,7 +312,7 @@ async function run() {
 
     app.delete('/registered-camps/:id',verifyToken, async (req, res) => {
       const id = req.params.id;
-      console.log('Delete id:',id);
+      // console.log('Delete id:',id);
       const query = {camp_id: id}
       const result = await participantCollection.deleteOne(query);
       res.send(result);
@@ -324,6 +327,17 @@ async function run() {
       const result = await testimonialCollection.insertOne(testimonial);
       res.send(result);
     })
+
+    app.post('/upComing-camps',verifyToken,verifyOrganizer, async(req,res) =>{
+      const upComingCamp = req.body;
+      const result = await upComingCampCollection.insertOne(upComingCamp);
+      res.send(result);
+    })
+
+
+
+
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
