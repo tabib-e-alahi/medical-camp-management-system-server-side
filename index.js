@@ -34,6 +34,7 @@ async function run() {
 
     const userCollection = client.db("mediCampsDb").collection("users");
     const campsCollection = client.db("mediCampsDb").collection("camps");
+    const testimonialCollection = client.db("mediCampsDb").collection("testimonials");
     const participantCollection = client
       .db("mediCampsDb")
       .collection("registrations");
@@ -313,6 +314,16 @@ async function run() {
       const result = await participantCollection.deleteOne(query);
       res.send(result);
     });
+
+    app.get('/testimonials', async(req,res) =>{
+      const result = await testimonialCollection.find().toArray();
+      res.send(result);
+    })
+    app.post('/testimonials',verifyToken, async(req,res) =>{
+      const testimonial = req.body;
+      const result = await testimonialCollection.insertOne(testimonial);
+      res.send(result);
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
