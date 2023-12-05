@@ -328,6 +328,17 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/upComing-camps', async(req,res) =>{
+      const result = await upComingCampCollection.find().toArray();
+      res.send(result);
+    })
+    app.get('/upComing-camps/:id',verifyToken, async(req,res) =>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await upComingCampCollection.findOne(query);
+      res.send(result);
+    })
+
     app.post('/upComing-camps',verifyToken,verifyOrganizer, async(req,res) =>{
       const upComingCamp = req.body;
       const result = await upComingCampCollection.insertOne(upComingCamp);
